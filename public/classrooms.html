@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classrooms - Campus Navigator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <img src="images/logo.png" alt="University Logo" class="header-logo">
+                Campus Navigator
+            </h1>
+            <p class="tagline">Your complete guide to classrooms, labs, and campus transport</p>
+        </header>
+
+        <div class="content-section active">
+            <h2>🏫 Classrooms</h2>
+            
+            <div class="search-box">
+                <input type="text" id="classroomSearch" placeholder="Search classrooms..." onkeyup="searchClassrooms()">
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterDepartment('all', this)">All Departments</button>
+                <button class="filter-btn" onclick="filterDepartment('CSE', this)">CSE</button>
+                <button class="filter-btn" onclick="filterDepartment('EEE', this)">EEE</button>
+                <button class="filter-btn" onclick="filterDepartment('BBA', this)">BBA</button>
+                <button class="filter-btn" onclick="filterDepartment('English', this)">English</button>
+            </div>
+
+            <div id="classroomsList">
+                <p style="text-align: center; padding: 40px; color: #666;">Loading classrooms...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let classrooms = [];
+        let currentDept = 'all';
+
+        async function loadClassrooms() {
+            try {
+                const response = await fetch(`${API_BASE}/classrooms`);
+                if (!response.ok) throw new Error('Failed to load classrooms');
+                
+                classrooms = await response.json();
+                renderClassrooms();
+            } catch (error) {
+                console.error('Error loading classrooms:', error);
+                document.getElementById('classroomsList').innerHTML = 
+                    '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading classrooms. Please try again later.</p>';
+            }
+        }
+
+        function renderClassrooms() {
+            const searchTerm = document.getElementById('classroomSearch').value.toLowerCase();
+            
+            let filtered = classrooms.filter(room => {
+                const matchesSearch = room.room_number.toLowerCase().includes(searchTerm) ||
+                                    room.department.toLowerCase().includes(searchTerm);
+                const matchesDept = currentDept === 'all' || room.department === currentDept;
+                return matchesSearch && matchesDept;
+            });
+
+            // Group by floor
+            const grouped = filtered.reduce((acc, room) => {
+                if (!acc[room.floor]) acc[room.floor] = [];
+                acc[room.floor].push(room);
+                return acc;
+            }, {});
+
+            const classroomsList = document.getElementById('classroomsList');
+            
+            if (filtered.length === 0) {
+                classroomsList.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No classrooms found matching your criteria.</p>';
+                return;
+            }
+
+            classroomsList.innerHTML = Object.keys(grouped).sort((a, b) => a - b).map(floor => `
+                <div class="floor-section">
+                    <div class="floor-header">Floor ${floor}</div>
+                    <div class="room-grid">
+                        ${grouped[floor].map(room => `
+                            <div class="room-card">
+                                <div class="room-number">${room.room_number}</div>
+                                <div class="room-dept">${room.department}</div>
+                                <div class="room-capacity">👥 Capacity: ${room.capacity}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterDepartment(dept, button) {
+            currentDept = dept;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderClassrooms();
+        }
+
+        function searchClassrooms() {
+            renderClassrooms();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadClassrooms);
+    </script>
+</body>
+</html>

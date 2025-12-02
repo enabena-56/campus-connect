@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Labs - Campus Navigator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <img src="images/logo.png" alt="University Logo" class="header-logo">
+                Campus Navigator
+            </h1>
+            <p class="tagline">Your complete guide to classrooms, labs, and campus transport</p>
+        </header>
+
+        <div class="content-section active">
+            <h2>🔬 Computer Labs</h2>
+            
+            <div class="search-box">
+                <input type="text" id="labSearch" placeholder="Search labs..." onkeyup="searchLabs()">
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterLabStatus('all', this)">All Labs</button>
+                <button class="filter-btn" onclick="filterLabStatus('open', this)">✅ Open</button>
+                <button class="filter-btn" onclick="filterLabStatus('closed', this)">❌ Closed</button>
+            </div>
+
+            <div id="labsList">
+                <p style="text-align: center; padding: 40px; color: #666;">Loading labs...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let labs = [];
+        let currentStatus = 'all';
+
+        async function loadLabs() {
+            try {
+                const response = await fetch(`${API_BASE}/labs`);
+                if (!response.ok) throw new Error('Failed to load labs');
+                
+                labs = await response.json();
+                renderLabs();
+            } catch (error) {
+                console.error('Error loading labs:', error);
+                document.getElementById('labsList').innerHTML = 
+                    '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading labs. Please try again later.</p>';
+            }
+        }
+
+        function renderLabs() {
+            const searchTerm = document.getElementById('labSearch').value.toLowerCase();
+            
+            let filtered = labs.filter(lab => {
+                const matchesSearch = lab.name.toLowerCase().includes(searchTerm) ||
+                                    lab.location.toLowerCase().includes(searchTerm);
+                const matchesStatus = currentStatus === 'all' || lab.status === currentStatus;
+                return matchesSearch && matchesStatus;
+            });
+
+            const labsList = document.getElementById('labsList');
+            
+            if (filtered.length === 0) {
+                labsList.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No labs found matching your criteria.</p>';
+                return;
+            }
+
+            labsList.innerHTML = filtered.map(lab => `
+                <div class="lab-card ${lab.status}">
+                    <div class="lab-header">
+                        <div class="lab-name">🖥️ ${lab.name}</div>
+                        <div class="lab-status ${lab.status}">${lab.status === 'open' ? '✅ Open' : '❌ Closed'}</div>
+                    </div>
+                    <div class="lab-info">📍 ${lab.location}</div>
+                    <div class="lab-info">💻 ${lab.computers} Computers</div>
+                    <div class="lab-info">�️ Projector: ${lab.projector || 'No'}</div>
+                    ${lab.instruments && lab.instruments !== 'None' ? `<div class="lab-info">🔧 Instruments: ${lab.instruments}</div>` : ''}
+                    <div class="lab-info">�🕒 ${lab.hours}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterLabStatus(status, button) {
+            currentStatus = status;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderLabs();
+        }
+
+        function searchLabs() {
+            renderLabs();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadLabs);
+    </script>
+</body>
+</html>

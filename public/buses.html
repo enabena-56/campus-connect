@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Schedule - Campus Navigator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>
+                <img src="images/logo.png" alt="University Logo" class="header-logo">
+                Campus Navigator
+            </h1>
+            <p class="tagline">Your complete guide to classrooms, labs, and campus transport</p>
+        </header>
+
+        <div class="content-section active">
+            <h2>🚌 Bus Schedule</h2>
+            
+            <div class="search-box">
+                <input type="text" id="busSearch" placeholder="Search by bus number or destination..." onkeyup="searchBuses()">
+            </div>
+
+            <div class="filter-buttons">
+                <button class="filter-btn active" onclick="filterBusesByTime('all', this)">All Times</button>
+                <button class="filter-btn" onclick="filterBusesByTime('morning', this)">Morning</button>
+                <button class="filter-btn" onclick="filterBusesByTime('afternoon', this)">Afternoon</button>
+                <button class="filter-btn" onclick="filterBusesByTime('evening', this)">Evening</button>
+            </div>
+
+            <div id="busList">
+                <p style="text-align: center; padding: 40px; color: #666;">Loading bus schedule...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let buses = [];
+        let currentFilter = 'all';
+
+        async function loadBuses() {
+            try {
+                const response = await fetch(`${API_BASE}/buses`);
+                if (!response.ok) throw new Error('Failed to load buses');
+                
+                buses = await response.json();
+                renderBuses();
+            } catch (error) {
+                console.error('Error loading buses:', error);
+                document.getElementById('busList').innerHTML = 
+                    '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading bus schedule. Please try again later.</p>';
+            }
+        }
+
+        function renderBuses() {
+            const busList = document.getElementById('busList');
+            const searchTerm = document.getElementById('busSearch').value.toLowerCase();
+            
+            let filteredBuses = buses.filter(bus => {
+                const matchesSearch = bus.number.toLowerCase().includes(searchTerm) || 
+                                    bus.route.toLowerCase().includes(searchTerm) ||
+                                    bus.stops.some(stop => stop.toLowerCase().includes(searchTerm));
+                
+                if (currentFilter === 'all') return matchesSearch;
+                
+                const hour = parseInt(bus.time.split(':')[0]);
+                const isPM = bus.time.includes('PM');
+                const hour24 = isPM && hour !== 12 ? hour + 12 : hour;
+                
+                if (currentFilter === 'morning') return matchesSearch && hour24 < 12;
+                if (currentFilter === 'afternoon') return matchesSearch && hour24 >= 12 && hour24 < 17;
+                if (currentFilter === 'evening') return matchesSearch && hour24 >= 17;
+                
+                return matchesSearch;
+            });
+
+            if (filteredBuses.length === 0) {
+                busList.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No buses found matching your criteria.</p>';
+                return;
+            }
+
+            busList.innerHTML = filteredBuses.map(bus => `
+                <div class="bus-card">
+                    <div class="bus-header">
+                        <div class="bus-number">🚌 Bus ${bus.number}</div>
+                        <div class="bus-time">${bus.time}</div>
+                    </div>
+                    <div class="bus-route">📍 ${bus.route}</div>
+                    <div class="bus-stops">
+                        ${bus.stops.map(stop => `<div class="bus-stop">${stop}</div>`).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterBusesByTime(filter, button) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            renderBuses();
+        }
+
+        function searchBuses() {
+            renderBuses();
+        }
+
+        document.addEventListener('DOMContentLoaded', loadBuses);
+    </script>
+</body>
+</html>
