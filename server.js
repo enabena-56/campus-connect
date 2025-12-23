@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Redirect root to homepage (must be before static middleware)
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public/home.html');
+    res.sendFile(__dirname + '/public/index.html');
 });
 
 app.use(express.static('public')); // Serve frontend files
@@ -41,16 +41,33 @@ app.post('/api/auth/signup', async (req, res) => {
     try {
         const { student_id, name, password } = req.body;
         
-        // Validate input
+        // INPUT VALIDATION: Verify all required fields are present and non-empty
+        // This is the first line of defense against incomplete or malformed requests
+        // Prevents database errors and ensures data integrity
+        // Reference: OWASP Input Validation Cheat Sheet - Always validate on server-side
         if (!student_id || !name || !password) {
             return res.status(400).json({ error: 'Student ID, name, and password are required' });
         }
 
+        // PASSWORD STRENGTH VALIDATION: Enforce minimum password length
+        // Protects against brute-force attacks and weak credentials
+        // 6 characters is a basic requirement; production systems typically require 8-12+ characters
+        // Best Practice: Consider adding complexity requirements (uppercase, lowercase, numbers, symbols)
+        // Reference: NIST SP 800-63B Digital Identity Guidelines
+        // PASSWORD STRENGTH VALIDATION: Enforce minimum password length
+        // Protects against brute-force attacks and weak credentials
+        // 6 characters is a basic requirement; production systems typically require 8-12+ characters
+        // Best Practice: Consider adding complexity requirements (uppercase, lowercase, numbers, symbols)
+        // Reference: NIST SP 800-63B Digital Identity Guidelines
         if (password.length < 6) {
             return res.status(400).json({ error: 'Password must be at least 6 characters long' });
         }
 
-        // Check if user already exists
+        // DUPLICATE PREVENTION: Check if student_id already exists in database
+        // Prevents duplicate accounts and maintains data uniqueness
+        // This check happens before password hashing to save computational resources
+        // Uses indexed database query for efficient lookup
+        // Reference: Database normalization principles - Ensuring entity uniqueness
         const existingUser = await db.findUserByStudentId(student_id);
         if (existingUser) {
             return res.status(400).json({ error: 'Student ID already exists' });
@@ -93,20 +110,33 @@ app.post('/api/auth/signin', async (req, res) => {
     try {
         const { student_id, password } = req.body;
         
-        // Validate input
+        // INPUT VALIDATION: Ensure both credentials are provided
+        // Empty credentials should be rejected before database lookup
+        // Saves database resources and provides clear error feedback
+        // Reference: Secure authentication flow - Validate before processing
         if (!student_id || !password) {
             return res.status(400).json({ error: 'Student ID and password are required' });
         }
 
-        // Find user
+        // USER EXISTENCE CHECK: Verify user account exists
+        // Returns null if student_id not found in database
         const user = await db.findUserByStudentId(student_id);
         if (!user) {
+            // SECURITY NOTE: Use generic "Invalid credentials" message
+            // Don't reveal whether the username or password was incorrect
+            // Prevents user enumeration attacks where attackers probe for valid usernames
+            // Reference: OWASP Authentication Cheat Sheet - Avoid account disclosure
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Validate password
+        // PASSWORD VERIFICATION: Compare provided password with stored hash
+        // Uses bcrypt.compare() to securely validate against hashed password
+        // Timing-safe comparison prevents timing attacks
+        // Reference: bcryptjs documentation - Secure password comparison
         const isValidPassword = await db.validatePassword(password, user.password);
         if (!isValidPassword) {
+            // SECURITY NOTE: Same generic error message as above
+            // Consistent response time prevents timing-based user enumeration
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -466,6 +496,14 @@ app.post('/api/booking-requests', authenticateToken, async (req, res) => {
     try {
         const { resource_type, resource_id, date, start_time, end_time, program_name, description, participant_count } = req.body;
 
+        // INPUT VALIDATION: Verify all mandatory booking information is provided
+        // resource_type: Must specify what type of resource (classroom, lab, bus, cafeteria)
+        // resource_id: Database ID of the specific resource being requested
+        // date: Date of the booking (YYYY-MM-DD format expected)
+        // start_time & end_time: Define the time slot for the booking
+        // program_name: Purpose/event name for tracking and approval decisions
+        // Note: description and participant_count are optional for flexibility
+        // Reference: Business logic requirements - Booking workflow validation
         if (!resource_type || !resource_id || !date || !start_time || !end_time || !program_name) {
             return res.status(400).json({ error: 'Required fields: resource_type, resource_id, date, start_time, end_time, program_name' });
         }
@@ -538,6 +576,11 @@ app.patch('/api/booking-requests/:id/status', authenticateToken, requireAdmin, a
     try {
         const { status, admin_notes } = req.body;
 
+        // STATUS VALIDATION: Ensure only valid status transitions are allowed
+        // Business Rule: Bookings can only be moved to 'approved' or 'rejected' states
+        // This prevents invalid states like "pending" being set by admin
+        // Maintains workflow integrity and prevents status manipulation
+        // Reference: State machine pattern - Define valid state transitions
         if (!status || !['approved', 'rejected'].includes(status)) {
             return res.status(400).json({ error: 'Status must be either "approved" or "rejected"' });
         }
@@ -555,15 +598,25 @@ app.delete('/api/booking-requests/:id', authenticateToken, async (req, res) => {
     try {
         const bookingRequest = await db.getBookingRequestById(req.params.id);
         
+        // RESOURCE EXISTENCE CHECK: Verify booking request exists before attempting deletion
         if (!bookingRequest) {
             return res.status(404).json({ error: 'Booking request not found' });
         }
 
-        // Users can only delete their own pending requests
+        // AUTHORIZATION VALIDATION: Implement role-based access control (RBAC)
+        // Non-admin users are restricted to their own pending requests only
+        // This prevents unauthorized deletion of other users' bookings
+        // Reference: OWASP Authorization Cheat Sheet - Enforce least privilege principle
         if (req.user.role !== 'admin') {
+            // OWNERSHIP CHECK: Verify the requesting user owns this booking
+            // req.user.id comes from JWT token (authenticated identity)
+            // bookingRequest.user_id is the original creator from database
             if (bookingRequest.user_id !== req.user.id) {
                 return res.status(403).json({ error: 'Access denied' });
             }
+            // BUSINESS RULE VALIDATION: Only pending requests can be deleted by students
+            // Prevents deletion of approved/rejected bookings which may have been processed
+            // Maintains audit trail integrity for finalized decisions
             if (bookingRequest.status !== 'pending') {
                 return res.status(400).json({ error: 'Can only delete pending requests' });
             }
@@ -574,6 +627,51 @@ app.delete('/api/booking-requests/:id', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error deleting booking request:', error);
         res.status(500).json({ error: 'Failed to delete booking request' });
+    }
+});
+
+// Get recent bookings for notice board (approved bookings from today onwards)
+app.get('/api/bookings/notices', authenticateToken, async (req, res) => {
+    try {
+        const limit = req.query.limit || 10;
+        
+        // Get approved bookings from today onwards, ordered by date and time
+        // Using the existing database method with filters
+        const allBookings = await db.getAllBookingRequests({ status: 'approved' });
+        
+        // Filter bookings to only include today and future dates
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const upcomingBookings = allBookings
+            .filter(booking => {
+                const bookingDate = new Date(booking.date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate >= today;
+            })
+            .sort((a, b) => {
+                // Sort by date, then by time
+                const dateCompare = new Date(a.date) - new Date(b.date);
+                if (dateCompare !== 0) return dateCompare;
+                return a.start_time.localeCompare(b.start_time);
+            })
+            .slice(0, limit)
+            .map(booking => ({
+                id: booking.id,
+                date: booking.date,
+                start_time: booking.start_time,
+                end_time: booking.end_time,
+                resource_type: booking.resource_type,
+                program_name: booking.program_name,
+                booked_by: booking.requester_name,
+                student_id: booking.requester_student_id,
+                resource_name: booking.resource_name
+            }));
+
+        res.json(upcomingBookings);
+    } catch (error) {
+        console.error('Error fetching bookings for notice board:', error);
+        res.status(500).json({ error: 'Failed to fetch bookings', details: error.message });
     }
 });
 

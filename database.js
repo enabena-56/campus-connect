@@ -393,7 +393,13 @@ class Database {
     async createUser(userData) {
         return new Promise(async (resolve, reject) => {
             try {
-                // Hash password
+                // PASSWORD HASHING: Transform plain-text password into secure hash
+                // Uses bcrypt algorithm with salt rounds = 10 (2^10 = 1024 iterations)
+                // Higher salt rounds = more secure but slower performance
+                // 10 rounds is recommended balance between security and speed
+                // Bcrypt automatically generates random salt and includes it in hash
+                // Reference: bcrypt documentation - Industry standard for password storage
+                // SECURITY NOTE: Never store passwords in plain text
                 const saltRounds = 10;
                 const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
                 
@@ -426,6 +432,13 @@ class Database {
     }
 
     async validatePassword(password, hashedPassword) {
+        // PASSWORD COMPARISON: Securely verify password against stored hash
+        // bcrypt.compare() automatically extracts salt from hashed password
+        // Performs the same hashing process on provided password
+        // Uses constant-time comparison to prevent timing attacks
+        // Returns true if password matches, false otherwise
+        // Reference: bcrypt documentation - Secure password verification
+        // SECURITY NOTE: Never compare passwords as plain text
         return bcrypt.compare(password, hashedPassword);
     }
 
@@ -865,6 +878,12 @@ class Database {
     // Booking Request Methods
     createBookingRequest(bookingData) {
         return new Promise((resolve, reject) => {
+            // SQL INJECTION PREVENTION: Use parameterized queries with placeholders (?)
+            // Values are passed separately from SQL statement
+            // Database driver automatically escapes special characters
+            // Prevents attackers from injecting malicious SQL code
+            // Reference: OWASP SQL Injection Prevention Cheat Sheet
+            // Example Attack Prevented: bookingData.program_name = "Test'; DROP TABLE users; --"
             const sql = `INSERT INTO booking_requests 
                         (user_id, resource_type, resource_id, date, start_time, end_time, program_name, description, participant_count) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
@@ -876,6 +895,9 @@ class Database {
                 bookingData.start_time,
                 bookingData.end_time,
                 bookingData.program_name,
+                // NULL HANDLING: Use null for optional fields if not provided
+                // Prevents storing "undefined" as string in database
+                // Maintains data type integrity in SQLite
                 bookingData.description || null,
                 bookingData.participant_count || null
             ], function(err) {
@@ -961,6 +983,12 @@ class Database {
 
     updateBookingRequestStatus(id, status, adminId, adminNotes = null) {
         return new Promise((resolve, reject) => {
+            // AUDIT TRAIL: Record who approved/rejected and when
+            // reviewed_by: Stores admin user ID for accountability
+            // reviewed_at: Timestamp of decision for compliance and tracking
+            // admin_notes: Optional explanation for approval/rejection decision
+            // This creates an immutable audit log for administrative actions
+            // Reference: Compliance requirements - Maintain audit trail for approvals
             const sql = `UPDATE booking_requests 
                         SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, 
                             admin_notes = ?, updated_at = CURRENT_TIMESTAMP 

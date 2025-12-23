@@ -1,0 +1,27 @@
+# Dependencies (can be reinstalled with npm install)
+node_modules/
+
+# Environment variables (if added later for production)
+.env
+.env.local
+.env.production
+
+# Log files
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
