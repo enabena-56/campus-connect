@@ -111,9 +111,9 @@ function loadHome() {
                     <div class="footer-section">
                         <h4>Contact Information</h4>
                         <p><strong>Email:</strong> <a href="mailto:support@campus.edu">support@campus.edu</a></p>
-                        <p><strong>Phone:</strong> <a href="tel:+1234567890">+1 (234) 567-890</a></p>
-                        <p><strong>Address:</strong> University Campus, Main Building</p>
-                        <p><strong>Hours:</strong> Mon - Fri: 9:00 AM - 5:00 PM</p>
+                        <p><strong>Phone:</strong> <a href="tel:+880123456789">+880 123 456 789</a></p>
+                        <p><strong>Address:</strong> Puran Dhaka, Main Building</p>
+                        <p><strong>Hours:</strong> Sun - Thurs: 9:00 AM - 5:00 PM</p>
                     </div>
                     
                     <div class="footer-section">

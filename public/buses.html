@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Schedule - Campus Navigator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -17,10 +19,11 @@
         </header>
 
         <div class="content-section active">
-            <h2>🚌 Bus Schedule</h2>
-            
+            <h2>Bus Schedule</h2>
+
             <div class="search-box">
-                <input type="text" id="busSearch" placeholder="Search by bus number or destination..." onkeyup="searchBuses()">
+                <input type="text" id="busSearch" placeholder="Search by bus number or destination..."
+                    onkeyup="searchBuses()">
             </div>
 
             <div class="filter-buttons">
@@ -45,12 +48,12 @@
             try {
                 const response = await fetch(`${API_BASE}/buses`);
                 if (!response.ok) throw new Error('Failed to load buses');
-                
+
                 buses = await response.json();
                 renderBuses();
             } catch (error) {
                 console.error('Error loading buses:', error);
-                document.getElementById('busList').innerHTML = 
+                document.getElementById('busList').innerHTML =
                     '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading bus schedule. Please try again later.</p>';
             }
         }
@@ -58,22 +61,22 @@
         function renderBuses() {
             const busList = document.getElementById('busList');
             const searchTerm = document.getElementById('busSearch').value.toLowerCase();
-            
+
             let filteredBuses = buses.filter(bus => {
-                const matchesSearch = bus.number.toLowerCase().includes(searchTerm) || 
-                                    bus.route.toLowerCase().includes(searchTerm) ||
-                                    bus.stops.some(stop => stop.toLowerCase().includes(searchTerm));
-                
+                const matchesSearch = bus.number.toLowerCase().includes(searchTerm) ||
+                    bus.route.toLowerCase().includes(searchTerm) ||
+                    bus.stops.some(stop => stop.toLowerCase().includes(searchTerm));
+
                 if (currentFilter === 'all') return matchesSearch;
-                
+
                 const hour = parseInt(bus.time.split(':')[0]);
                 const isPM = bus.time.includes('PM');
                 const hour24 = isPM && hour !== 12 ? hour + 12 : hour;
-                
+
                 if (currentFilter === 'morning') return matchesSearch && hour24 < 12;
                 if (currentFilter === 'afternoon') return matchesSearch && hour24 >= 12 && hour24 < 17;
                 if (currentFilter === 'evening') return matchesSearch && hour24 >= 17;
-                
+
                 return matchesSearch;
             });
 
@@ -110,4 +113,5 @@
         document.addEventListener('DOMContentLoaded', loadBuses);
     </script>
 </body>
+
 </html>

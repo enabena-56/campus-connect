@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Classrooms - Campus Navigator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -17,8 +19,8 @@
         </header>
 
         <div class="content-section active">
-            <h2>🏫 Classrooms</h2>
-            
+            <h2>Classrooms</h2>
+
             <div class="search-box">
                 <input type="text" id="classroomSearch" placeholder="Search classrooms..." onkeyup="searchClassrooms()">
             </div>
@@ -46,22 +48,22 @@
             try {
                 const response = await fetch(`${API_BASE}/classrooms`);
                 if (!response.ok) throw new Error('Failed to load classrooms');
-                
+
                 classrooms = await response.json();
                 renderClassrooms();
             } catch (error) {
                 console.error('Error loading classrooms:', error);
-                document.getElementById('classroomsList').innerHTML = 
+                document.getElementById('classroomsList').innerHTML =
                     '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading classrooms. Please try again later.</p>';
             }
         }
 
         function renderClassrooms() {
             const searchTerm = document.getElementById('classroomSearch').value.toLowerCase();
-            
+
             let filtered = classrooms.filter(room => {
                 const matchesSearch = room.room_number.toLowerCase().includes(searchTerm) ||
-                                    room.department.toLowerCase().includes(searchTerm);
+                    room.department.toLowerCase().includes(searchTerm);
                 const matchesDept = currentDept === 'all' || room.department === currentDept;
                 return matchesSearch && matchesDept;
             });
@@ -74,7 +76,7 @@
             }, {});
 
             const classroomsList = document.getElementById('classroomsList');
-            
+
             if (filtered.length === 0) {
                 classroomsList.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No classrooms found matching your criteria.</p>';
                 return;
@@ -110,4 +112,5 @@
         document.addEventListener('DOMContentLoaded', loadClassrooms);
     </script>
 </body>
+
 </html>

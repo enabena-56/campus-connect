@@ -3,7 +3,7 @@
 function renderClassrooms(classrooms) {
     currentClassrooms = classrooms;
     const contentArea = document.getElementById('content-area');
-    
+
     // Group classrooms by floor
     const floorGroups = {};
     classrooms.forEach(room => {
@@ -56,14 +56,14 @@ function renderClassrooms(classrooms) {
             </div>
         </div>
     `;
-    
+
     contentArea.innerHTML = html;
 }
 
 function renderLabs(labs) {
     currentLabs = labs;
     const contentArea = document.getElementById('content-area');
-    
+
     const html = `
         <div id="labs" class="content-section active">
             <div class="search-box">
@@ -76,7 +76,8 @@ function renderLabs(labs) {
                 <button class="filter-btn" data-status="closed" onclick="filterLabStatus('closed', this)">Closed Only</button>
             </div>
 
-            <div class="admin-controls">
+            <div class="admin-controls" ${currentUser.role !== 'admin' ? 'style="display: none;"' : ''}>
+                <button onclick="showAddLabForm()" class="admin-btn">➕ Add Lab</button>
                 <button onclick="refreshLabs()" class="refresh-btn">🔄 Refresh</button>
             </div>
 
@@ -96,14 +97,14 @@ function renderLabs(labs) {
             </div>
         </div>
     `;
-    
+
     contentArea.innerHTML = html;
 }
 
 function renderBuses(buses) {
     currentBuses = buses;
     const contentArea = document.getElementById('content-area');
-    
+
     const html = `
         <div id="buses" class="content-section active">
             <div class="search-box">
@@ -142,7 +143,7 @@ function renderBuses(buses) {
             </div>
         </div>
     `;
-    
+
     contentArea.innerHTML = html;
 }
 
@@ -150,9 +151,9 @@ function renderCafeteria(menuItems, cafeteriaInfo) {
     currentMenuItems = menuItems;
     currentCafeteriaInfo = cafeteriaInfo;
     const contentArea = document.getElementById('content-area');
-    
+
     const categories = ['food', 'snacks', 'drinks'];
-    
+
     const html = `
         <div id="cafeteria" class="content-section active">
             <div class="cafeteria-header">
@@ -223,7 +224,7 @@ function renderCafeteria(menuItems, cafeteriaInfo) {
             </div>
         </div>
     `;
-    
+
     contentArea.innerHTML = html;
 }
 

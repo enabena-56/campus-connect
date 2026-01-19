@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cafeteria - Campus Navigator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -20,7 +22,7 @@
             <!-- Cafeteria Header -->
             <div class="cafeteria-title">
                 <h2>
-                    🍽️ Campus Cafeteria
+                    Campus Cafeteria
                 </h2>
                 <div class="cafeteria-contact-info" id="contactInfo">
                     <div class="contact-item">
@@ -45,7 +47,7 @@
                         <button class="filter-pill" data-category="drinks">🥤 Drinks</button>
                     </div>
                 </div>
-                
+
                 <div class="filter-group-modern">
                     <h4>Availability:</h4>
                     <div class="filter-pills" id="availabilityFilters">
@@ -61,8 +63,8 @@
                 <p style="text-align: center; padding: 40px; color: #666;">Loading menu items...</p>
             </div>
 
-            </div>
         </div>
+    </div>
     </div>
 
     <script>
@@ -107,7 +109,7 @@
                 setupFilters();
             } catch (error) {
                 console.error('Error loading cafeteria data:', error);
-                document.getElementById('menuList').innerHTML = 
+                document.getElementById('menuList').innerHTML =
                     '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading menu items. Please try again later.</p>';
             }
         }
@@ -115,7 +117,7 @@
         // Render menu items
         function renderMenuItems() {
             const menuList = document.getElementById('menuList');
-            
+
             const filteredItems = menuItems.filter(item => {
                 const matchesCategory = activeCategory === 'all' || item.category === activeCategory;
                 const matchesAvailability = activeAvailability === 'all' || item.availability === activeAvailability;
@@ -151,7 +153,7 @@
 
             // Category filter
             categoryPills.forEach(pill => {
-                pill.addEventListener('click', function() {
+                pill.addEventListener('click', function () {
                     categoryPills.forEach(p => p.classList.remove('active'));
                     this.classList.add('active');
                     activeCategory = this.getAttribute('data-category');
@@ -161,7 +163,7 @@
 
             // Availability filter
             availabilityPills.forEach(pill => {
-                pill.addEventListener('click', function() {
+                pill.addEventListener('click', function () {
                     availabilityPills.forEach(p => p.classList.remove('active'));
                     this.classList.add('active');
                     activeAvailability = this.getAttribute('data-availability');
@@ -174,4 +176,5 @@
         document.addEventListener('DOMContentLoaded', loadCafeteriaData);
     </script>
 </body>
+
 </html>

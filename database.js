@@ -232,27 +232,27 @@ class Database {
 
                 // Sample buses with stops
                 const busesWithStops = [
-                    { 
+                    {
                         bus: { number: 'A1', time: '7:30 AM', route: 'Campus → City Center → Main Station' },
                         stops: ['Campus Gate', 'Medical College', 'Shopping Mall', 'City Center', 'Main Station']
                     },
-                    { 
+                    {
                         bus: { number: 'A2', time: '8:00 AM', route: 'Campus → University Area → Airport Road' },
                         stops: ['Campus Gate', 'Student Dormitory', 'University Market', 'Tech Park', 'Airport Road']
                     },
-                    { 
+                    {
                         bus: { number: 'B1', time: '9:00 AM', route: 'Campus → Residential Area → Lake View' },
                         stops: ['Campus Gate', 'Faculty Housing', 'Green Park', 'Lake View']
                     },
-                    { 
+                    {
                         bus: { number: 'B2', time: '1:00 PM', route: 'Main Station → City Center → Campus' },
                         stops: ['Main Station', 'City Center', 'Shopping Mall', 'Medical College', 'Campus Gate']
                     },
-                    { 
+                    {
                         bus: { number: 'C1', time: '5:00 PM', route: 'Campus → Downtown → Metro Station' },
                         stops: ['Campus Gate', 'Library Square', 'Downtown Plaza', 'Business District', 'Metro Station']
                     },
-                    { 
+                    {
                         bus: { number: 'C2', time: '6:30 PM', route: 'Airport Road → University Area → Campus' },
                         stops: ['Airport Road', 'Tech Park', 'University Market', 'Student Dormitory', 'Campus Gate']
                     }
@@ -330,7 +330,7 @@ class Database {
     insertClassroom(classroom) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO classrooms (room, dept, floor, capacity) VALUES (?, ?, ?, ?)`;
-            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity], function(err) {
+            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -340,7 +340,7 @@ class Database {
     insertLab(lab) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO labs (name, dept, location, computers, projector, instruments, status, hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
-            this.db.run(sql, [lab.name, lab.dept, lab.location, lab.computers, lab.projector || 'No', lab.instruments || 'None', lab.status, lab.hours], function(err) {
+            this.db.run(sql, [lab.name, lab.dept, lab.location, lab.computers, lab.projector || 'No', lab.instruments || 'None', lab.status, lab.hours], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -350,7 +350,7 @@ class Database {
     insertBus(bus) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO buses (number, time, route) VALUES (?, ?, ?)`;
-            this.db.run(sql, [bus.number, bus.time, bus.route], function(err) {
+            this.db.run(sql, [bus.number, bus.time, bus.route], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -360,7 +360,7 @@ class Database {
     insertBusStop(busId, stopName, stopOrder) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO bus_stops (bus_id, stop_name, stop_order) VALUES (?, ?, ?)`;
-            this.db.run(sql, [busId, stopName, stopOrder], function(err) {
+            this.db.run(sql, [busId, stopName, stopOrder], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -370,7 +370,7 @@ class Database {
     insertMenuItem(item) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO cafeteria_menu (name, description, price, category, availability) VALUES (?, ?, ?, ?, ?)`;
-            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability], function(err) {
+            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -380,7 +380,7 @@ class Database {
     insertCafeteriaInfo(info) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO cafeteria_info (location, contact, hours) VALUES (?, ?, ?)`;
-            this.db.run(sql, [info.location, info.contact, info.hours], function(err) {
+            this.db.run(sql, [info.location, info.contact, info.hours], function (err) {
                 if (err) reject(err);
                 else resolve(this.lastID);
             });
@@ -402,14 +402,14 @@ class Database {
                 // SECURITY NOTE: Never store passwords in plain text
                 const saltRounds = 10;
                 const hashedPassword = await bcrypt.hash(userData.password, saltRounds);
-                
+
                 const sql = `INSERT INTO users (student_id, name, password, role) VALUES (?, ?, ?, ?)`;
-                this.db.run(sql, [userData.student_id, userData.name, hashedPassword, userData.role], function(err) {
+                this.db.run(sql, [userData.student_id, userData.name, hashedPassword, userData.role], function (err) {
                     if (err) {
                         reject(err);
                     } else {
-                        resolve({ 
-                            id: this.lastID, 
+                        resolve({
+                            id: this.lastID,
                             student_id: userData.student_id,
                             name: userData.name,
                             role: userData.role
@@ -494,7 +494,7 @@ class Database {
     createClassroom(classroom) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO classrooms (room, dept, floor, capacity) VALUES (?, ?, ?, ?)`;
-            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity], function(err) {
+            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity], function (err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, ...classroom });
             });
@@ -504,7 +504,7 @@ class Database {
     updateClassroom(id, classroom) {
         return new Promise((resolve, reject) => {
             const sql = `UPDATE classrooms SET room = ?, dept = ?, floor = ?, capacity = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity, id], function(err) {
+            this.db.run(sql, [classroom.room, classroom.dept, classroom.floor, classroom.capacity, id], function (err) {
                 if (err) reject(err);
                 else resolve({ id: parseInt(id), ...classroom });
             });
@@ -513,7 +513,7 @@ class Database {
 
     deleteClassroom(id) {
         return new Promise((resolve, reject) => {
-            this.db.run(`DELETE FROM classrooms WHERE id = ?`, [id], function(err) {
+            this.db.run(`DELETE FROM classrooms WHERE id = ?`, [id], function (err) {
                 if (err) reject(err);
                 else resolve({ message: 'Classroom deleted successfully' });
             });
@@ -551,6 +551,32 @@ class Database {
         });
     }
 
+    createLab(labData) {
+        return new Promise((resolve, reject) => {
+            const sql = `INSERT INTO labs (name, dept, location, computers, projector, instruments, status, hours) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`;
+            this.db.run(
+                sql,
+                [
+                    labData.name,
+                    labData.dept,
+                    labData.location,
+                    labData.computers,
+                    labData.projector || 'No',
+                    labData.instruments || 'None',
+                    labData.status || 'open',
+                    labData.hours || ''
+                ],
+                function (err) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve({ id: this.lastID, ...labData });
+                    }
+                }
+            );
+        });
+    }
+
     updateLabStatus(id, status) {
         return new Promise((resolve, reject) => {
             this.db.get(`SELECT * FROM labs WHERE id = ?`, [id], (err, lab) => {
@@ -560,7 +586,7 @@ class Database {
                     reject(new Error('Lab not found'));
                 } else {
                     const sql = `UPDATE labs SET status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-                    this.db.run(sql, [status, id], function(err) {
+                    this.db.run(sql, [status, id], function (err) {
                         if (err) reject(err);
                         else resolve({ ...lab, status });
                     });
@@ -612,7 +638,7 @@ class Database {
         return new Promise(async (resolve, reject) => {
             try {
                 const busId = await this.insertBus(busData);
-                
+
                 // Insert stops
                 if (busData.stops && busData.stops.length > 0) {
                     for (let i = 0; i < busData.stops.length; i++) {
@@ -633,7 +659,7 @@ class Database {
                 // Update bus
                 const sql = `UPDATE buses SET number = ?, time = ?, route = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
                 await new Promise((res, rej) => {
-                    this.db.run(sql, [busData.number, busData.time, busData.route, id], function(err) {
+                    this.db.run(sql, [busData.number, busData.time, busData.route, id], function (err) {
                         if (err) rej(err);
                         else res();
                     });
@@ -641,7 +667,7 @@ class Database {
 
                 // Delete existing stops
                 await new Promise((res, rej) => {
-                    this.db.run(`DELETE FROM bus_stops WHERE bus_id = ?`, [id], function(err) {
+                    this.db.run(`DELETE FROM bus_stops WHERE bus_id = ?`, [id], function (err) {
                         if (err) rej(err);
                         else res();
                     });
@@ -664,7 +690,7 @@ class Database {
     deleteBus(id) {
         return new Promise((resolve, reject) => {
             // SQLite will automatically delete bus_stops due to FOREIGN KEY CASCADE
-            this.db.run(`DELETE FROM buses WHERE id = ?`, [id], function(err) {
+            this.db.run(`DELETE FROM buses WHERE id = ?`, [id], function (err) {
                 if (err) reject(err);
                 else resolve({ message: 'Bus route deleted successfully' });
             });
@@ -719,7 +745,7 @@ class Database {
     createMenuItem(item) {
         return new Promise((resolve, reject) => {
             const sql = `INSERT INTO cafeteria_menu (name, description, price, category, availability) VALUES (?, ?, ?, ?, ?)`;
-            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability], function(err) {
+            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability], function (err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, ...item });
             });
@@ -729,7 +755,7 @@ class Database {
     updateMenuItem(id, item) {
         return new Promise((resolve, reject) => {
             const sql = `UPDATE cafeteria_menu SET name = ?, description = ?, price = ?, category = ?, availability = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability, id], function(err) {
+            this.db.run(sql, [item.name, item.description, item.price, item.category, item.availability, id], function (err) {
                 if (err) reject(err);
                 else resolve({ id: parseInt(id), ...item });
             });
@@ -738,7 +764,7 @@ class Database {
 
     deleteMenuItem(id) {
         return new Promise((resolve, reject) => {
-            this.db.run(`DELETE FROM cafeteria_menu WHERE id = ?`, [id], function(err) {
+            this.db.run(`DELETE FROM cafeteria_menu WHERE id = ?`, [id], function (err) {
                 if (err) reject(err);
                 else resolve({ message: 'Menu item deleted successfully' });
             });
@@ -763,14 +789,14 @@ class Database {
                 } else if (row) {
                     // Update existing
                     const sql = `UPDATE cafeteria_info SET location = ?, contact = ?, hours = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`;
-                    this.db.run(sql, [info.location, info.contact, info.hours, row.id], function(err) {
+                    this.db.run(sql, [info.location, info.contact, info.hours, row.id], function (err) {
                         if (err) reject(err);
                         else resolve({ id: row.id, ...info });
                     });
                 } else {
                     // Insert new
                     const sql = `INSERT INTO cafeteria_info (location, contact, hours) VALUES (?, ?, ?)`;
-                    this.db.run(sql, [info.location, info.contact, info.hours], function(err) {
+                    this.db.run(sql, [info.location, info.contact, info.hours], function (err) {
                         if (err) reject(err);
                         else resolve({ id: this.lastID, ...info });
                     });
@@ -793,7 +819,7 @@ class Database {
                 schedule.subject,
                 schedule.instructor || null,
                 schedule.course_code || null
-            ], function(err) {
+            ], function (err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, ...schedule });
             });
@@ -858,7 +884,7 @@ class Database {
 
             const sql = `UPDATE schedules SET ${fields.join(', ')} WHERE id = ?`;
 
-            this.db.run(sql, values, function(err) {
+            this.db.run(sql, values, function (err) {
                 if (err) reject(err);
                 else resolve({ id: scheduleId, changes: this.changes });
             });
@@ -868,7 +894,7 @@ class Database {
     deleteSchedule(scheduleId) {
         return new Promise((resolve, reject) => {
             const sql = `DELETE FROM schedules WHERE id = ?`;
-            this.db.run(sql, [scheduleId], function(err) {
+            this.db.run(sql, [scheduleId], function (err) {
                 if (err) reject(err);
                 else resolve({ deleted: this.changes });
             });
@@ -900,7 +926,7 @@ class Database {
                 // Maintains data type integrity in SQLite
                 bookingData.description || null,
                 bookingData.participant_count || null
-            ], function(err) {
+            ], function (err) {
                 if (err) reject(err);
                 else resolve({ id: this.lastID, ...bookingData, status: 'pending' });
             });
@@ -993,7 +1019,7 @@ class Database {
                         SET status = ?, reviewed_by = ?, reviewed_at = CURRENT_TIMESTAMP, 
                             admin_notes = ?, updated_at = CURRENT_TIMESTAMP 
                         WHERE id = ?`;
-            this.db.run(sql, [status, adminId, adminNotes, id], function(err) {
+            this.db.run(sql, [status, adminId, adminNotes, id], function (err) {
                 if (err) reject(err);
                 else resolve({ id: id, status: status, changes: this.changes });
             });
@@ -1003,7 +1029,7 @@ class Database {
     deleteBookingRequest(id) {
         return new Promise((resolve, reject) => {
             const sql = `DELETE FROM booking_requests WHERE id = ?`;
-            this.db.run(sql, [id], function(err) {
+            this.db.run(sql, [id], function (err) {
                 if (err) reject(err);
                 else resolve({ deleted: this.changes });
             });

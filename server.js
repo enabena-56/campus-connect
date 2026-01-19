@@ -14,7 +14,7 @@ const db = new Database();
 app.use(cors());
 app.use(express.json());
 
-// Redirect root to homepage (must be before static middleware)
+// Redirect root to homepage 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + '/public/index.html');
 });
@@ -40,7 +40,7 @@ async function initializeServer() {
 app.post('/api/auth/signup', async (req, res) => {
     try {
         const { student_id, name, password } = req.body;
-        
+
         // INPUT VALIDATION: Verify all required fields are present and non-empty
         // This is the first line of defense against incomplete or malformed requests
         // Prevents database errors and ensures data integrity
@@ -109,7 +109,7 @@ app.post('/api/auth/signup', async (req, res) => {
 app.post('/api/auth/signin', async (req, res) => {
     try {
         const { student_id, password } = req.body;
-        
+
         // INPUT VALIDATION: Ensure both credentials are provided
         // Empty credentials should be rejected before database lookup
         // Saves database resources and provides clear error feedback
@@ -267,6 +267,33 @@ app.get('/api/labs', authenticateToken, async (req, res) => {
     } catch (error) {
         console.error('Error fetching labs:', error);
         res.status(500).json({ error: 'Failed to fetch labs' });
+    }
+});
+
+// Add new lab (admin only)
+app.post('/api/labs', authenticateToken, requireAdmin, async (req, res) => {
+    try {
+        const { name, dept, location, computers, projector, instruments, status, hours } = req.body;
+
+        if (!name || !dept || !location || !computers || !hours) {
+            return res.status(400).json({ error: 'Name, department, location, computers, and hours are required' });
+        }
+
+        const newLab = await db.createLab({
+            name,
+            dept,
+            location,
+            computers,
+            projector,
+            instruments,
+            status: status || 'open',
+            hours
+        });
+
+        res.status(201).json(newLab);
+    } catch (error) {
+        console.error('Error creating lab:', error);
+        res.status(500).json({ error: 'Failed to create lab' });
     }
 });
 
@@ -532,11 +559,11 @@ app.get('/api/booking-requests', authenticateToken, async (req, res) => {
     try {
         const { status, resource_type, resource_id } = req.query;
         const filters = { status, resource_type };
-        
+
         if (resource_id) {
             filters.resource_id = parseInt(resource_id);
         }
-        
+
         // If not admin, only show user's own requests (unless viewing approved bookings for a resource)
         if (req.user.role !== 'admin' && status !== 'approved') {
             filters.user_id = req.user.id;
@@ -554,7 +581,7 @@ app.get('/api/booking-requests', authenticateToken, async (req, res) => {
 app.get('/api/booking-requests/:id', authenticateToken, async (req, res) => {
     try {
         const bookingRequest = await db.getBookingRequestById(req.params.id);
-        
+
         if (!bookingRequest) {
             return res.status(404).json({ error: 'Booking request not found' });
         }
@@ -597,7 +624,7 @@ app.patch('/api/booking-requests/:id/status', authenticateToken, requireAdmin, a
 app.delete('/api/booking-requests/:id', authenticateToken, async (req, res) => {
     try {
         const bookingRequest = await db.getBookingRequestById(req.params.id);
-        
+
         // RESOURCE EXISTENCE CHECK: Verify booking request exists before attempting deletion
         if (!bookingRequest) {
             return res.status(404).json({ error: 'Booking request not found' });
@@ -634,15 +661,15 @@ app.delete('/api/booking-requests/:id', authenticateToken, async (req, res) => {
 app.get('/api/bookings/notices', authenticateToken, async (req, res) => {
     try {
         const limit = req.query.limit || 10;
-        
+
         // Get approved bookings from today onwards, ordered by date and time
         // Using the existing database method with filters
         const allBookings = await db.getAllBookingRequests({ status: 'approved' });
-        
+
         // Filter bookings to only include today and future dates
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         const upcomingBookings = allBookings
             .filter(booking => {
                 const bookingDate = new Date(booking.date);

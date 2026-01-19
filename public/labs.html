@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Labs - Campus Navigator</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -17,8 +19,8 @@
         </header>
 
         <div class="content-section active">
-            <h2>🔬 Computer Labs</h2>
-            
+            <h2>Computer Labs</h2>
+
             <div class="search-box">
                 <input type="text" id="labSearch" placeholder="Search labs..." onkeyup="searchLabs()">
             </div>
@@ -44,28 +46,28 @@
             try {
                 const response = await fetch(`${API_BASE}/labs`);
                 if (!response.ok) throw new Error('Failed to load labs');
-                
+
                 labs = await response.json();
                 renderLabs();
             } catch (error) {
                 console.error('Error loading labs:', error);
-                document.getElementById('labsList').innerHTML = 
+                document.getElementById('labsList').innerHTML =
                     '<p style="text-align: center; padding: 40px; color: #e74c3c;">Error loading labs. Please try again later.</p>';
             }
         }
 
         function renderLabs() {
             const searchTerm = document.getElementById('labSearch').value.toLowerCase();
-            
+
             let filtered = labs.filter(lab => {
                 const matchesSearch = lab.name.toLowerCase().includes(searchTerm) ||
-                                    lab.location.toLowerCase().includes(searchTerm);
+                    lab.location.toLowerCase().includes(searchTerm);
                 const matchesStatus = currentStatus === 'all' || lab.status === currentStatus;
                 return matchesSearch && matchesStatus;
             });
 
             const labsList = document.getElementById('labsList');
-            
+
             if (filtered.length === 0) {
                 labsList.innerHTML = '<p style="text-align: center; padding: 40px; color: #666;">No labs found matching your criteria.</p>';
                 return;
@@ -100,4 +102,5 @@
         document.addEventListener('DOMContentLoaded', loadLabs);
     </script>
 </body>
+
 </html>
